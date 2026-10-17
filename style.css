@@ -1,0 +1,136 @@
+
+/* Purple Task Manager Design */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 40px 20px;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff, #faf5ff);
+    color: #2e1065;
+    min-height: 100vh;
+}
+
+h1 {
+    text-align: center;
+    color: #7c3aed;
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+
+h2 {
+    text-align: center;
+    color: #6d28d9;
+    margin-top: 10px;
+}
+
+p {
+    text-align: center;
+    color: #7e22ce;
+    margin-bottom: 30px;
+}
+
+/* Task input */
+
+label {
+    display: block;
+    max-width: 600px;
+    margin: 0 auto 8px;
+    font-weight: bold;
+}
+
+input {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 15px;
+    padding: 14px;
+    border: 2px solid #ddd6fe;
+    border-radius: 10px;
+    background: white;
+    color: #2e1065;
+    font-size: 16px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px #ede9fe;
+}
+
+/* Buttons */
+
+button {
+    display: block;
+    margin: 10px auto;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 9px;
+    background: #7c3aed;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #5b21b6;
+    transform: translateY(-1px);
+}
+
+/* Task list */
+
+ul {
+    max-width: 600px;
+    margin: 25px auto;
+    padding: 0;
+    list-style: none;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 15px;
+    border: 1px solid #ddd6fe;
+    border-radius: 12px;
+    background: white;
+    color: #4c1d95;
+    box-shadow: 0 5px 15px rgba(91, 33, 182, 0.08);
+    overflow-wrap: anywhere;
+}
+
+li button {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 8px 12px;
+    background: #ef4444;
+    font-size: 13px;
+}
+
+li button:hover {
+    background: #b91c1c;
+}
+
+/* Mobile screens */
+
+@media (max-width: 480px) {
+    body {
+        padding: 25px 15px;
+    }
+
+    h1 {
+        font-size: 29px;
+    }
+
+    li {
+        padding: 10px;
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBuddy - My Task Manager</title>
+</head>
+<body>
+    <h1>💜 TaskBuddy</h1>
+    <h2>My Tasks</h2>
+    <p>Welcome to your Task Management Application!</p>
+
+    <label for="task">Enter your task:</label>
+    <input type="text" id="task" placeholder="Enter a task">
+
+    <button onclick="addTask()">Add Task</button>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        function addTask() {
+            const input = document.getElementById("task");
+            const taskName = input.value.trim();
+
+            if (taskName === "") {
+                alert("Please enter a task!");
+                return;
+            }
+
+            const item = document.createElement("li");
+            item.textContent = taskName + " ";
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.onclick = function () {
+                item.remove();
+            };
+
+            item.appendChild(deleteButton);
+            document.getElementById("taskList").appendChild(item);
+            input.value = "";
+        }
+    </script>
+</body>
+</html>

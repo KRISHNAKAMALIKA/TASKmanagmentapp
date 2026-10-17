@@ -2,45 +2,355 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskBuddy - My Task Manager</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskBuddy - Task Manager</title>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f3ff;
+      color: #241642;
+    }
+
+    header {
+      background: #6d28d9;
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+
+    header h1 { margin: 0 0 8px; }
+    header p { margin: 0; }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 18px #312e8112;
+    }
+
+    .task-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input {
+      flex: 1;
+      min-width: 160px;
+      padding: 13px;
+      border: 1px solid #d8b4fe;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      background: #7c3aed;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover { background: #5b21b6; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      text-align: center;
+    }
+
+    .stat {
+      background: #ede9fe;
+      border-radius: 12px;
+      padding: 16px 8px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 26px;
+      color: #6d28d9;
+      margin-bottom: 5px;
+    }
+
+    .progress {
+      height: 12px;
+      background: #e9d5ff;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #7c3aed;
+      transition: width 0.3s;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .filters button { background: #ede9fe; color: #5b21b6; }
+    .filters button.active { background: #6d28d9; color: white; }
+
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .task input[type="checkbox"] {
+      flex: 0 0 auto;
+      min-width: auto;
+      width: 18px;
+      height: 18px;
+      accent-color: #7c3aed;
+    }
+
+    .task-name { flex: 1; overflow-wrap: anywhere; }
+    .completed { text-decoration: line-through; color: #888; }
+
+    .edit { background: #2563eb; }
+    .delete { background: #dc2626; }
+    .clear { background: #4b5563; }
+
+    .empty { text-align: center; color: #777; padding: 20px; }
+
+    @media (max-width: 500px) {
+      .container { padding: 12px; margin: 15px auto; }
+      .card { padding: 16px; }
+      .task { flex-wrap: wrap; }
+      .task-name { min-width: 120px; }
+      .stats { gap: 6px; }
+      .stat { padding: 12px 4px; }
+      .stat strong { font-size: 22px; }
+    }
+  </style>
 </head>
+
 <body>
+  <header>
     <h1>💜 TaskBuddy</h1>
-    <h2>My Tasks</h2>
-    <p>Welcome to your Task Management Application!</p>
+    <p>Plan your day. Complete your goals.</p>
+  </header>
 
-    <label for="task">Enter your task:</label>
-    <input type="text" id="task" placeholder="Enter a task">
+  <div id="root"></div>
 
-    <button onclick="addTask()">Add Task</button>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-    <ul id="taskList"></ul>
-
-    <script>
-        function addTask() {
-            const input = document.getElementById("task");
-            const taskName = input.value.trim();
-
-            if (taskName === "") {
-                alert("Please enter a task!");
-                return;
-            }
-
-            const item = document.createElement("li");
-            item.textContent = taskName + " ";
-
-            const deleteButton = document.createElement("button");
-            deleteButton.textContent = "Delete";
-            deleteButton.onclick = function () {
-                item.remove();
-            };
-
-            item.appendChild(deleteButton);
-            document.getElementById("taskList").appendChild(item);
-            input.value = "";
+    function App() {
+      const [tasks, setTasks] = useState(() => {
+        try {
+          return JSON.parse(localStorage.getItem("taskbuddy-tasks")) || [];
+        } catch {
+          return [];
         }
-    </script>
+      });
+
+      const [text, setText] = useState("");
+      const [editingId, setEditingId] = useState(null);
+      const [filter, setFilter] = useState("All");
+
+      useEffect(() => {
+        localStorage.setItem("taskbuddy-tasks", JSON.stringify(tasks));
+      }, [tasks]);
+
+      function addOrUpdateTask(e) {
+        e.preventDefault();
+        if (!text.trim()) return;
+
+        if (editingId !== null) {
+          setTasks(tasks.map(task =>
+            task.id === editingId
+              ? { ...task, title: text.trim() }
+              : task
+          ));
+          setEditingId(null);
+        } else {
+          setTasks([
+            ...tasks,
+            {
+              id: Date.now(),
+              title: text.trim(),
+              completed: false
+            }
+          ]);
+        }
+
+        setText("");
+      }
+
+      function editTask(task) {
+        setText(task.title);
+        setEditingId(task.id);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function deleteTask(id) {
+        setTasks(tasks.filter(task => task.id !== id));
+        if (editingId === id) {
+          setEditingId(null);
+          setText("");
+        }
+      }
+
+      function toggleTask(id) {
+        setTasks(tasks.map(task =>
+          task.id === id
+            ? { ...task, completed: !task.completed }
+            : task
+        ));
+      }
+
+      const completed = tasks.filter(task => task.completed).length;
+      const pending = tasks.length - completed;
+      const progress = tasks.length
+        ? Math.round((completed / tasks.length) * 100)
+        : 0;
+
+      const visibleTasks = tasks.filter(task => {
+        if (filter === "Completed") return task.completed;
+        if (filter === "Pending") return !task.completed;
+        return true;
+      });
+
+      return (
+        <main className="container">
+          <section className="card">
+            <h2>{editingId !== null ? "Edit Task" : "Add a New Task"}</h2>
+
+            <form className="task-form" onSubmit={addOrUpdateTask}>
+              <input
+                value={text}
+                onChange={e => setText(e.target.value)}
+                placeholder="Enter your task..."
+                aria-label="Task name"
+              />
+              <button type="submit">
+                {editingId !== null ? "Update Task" : "Add Task"}
+              </button>
+
+              {editingId !== null && (
+                <button type="button" className="clear" onClick={() => {
+                  setEditingId(null);
+                  setText("");
+                }}>
+                  Cancel
+                </button>
+              )}
+            </form>
+          </section>
+
+          <section className="card">
+            <h2>📊 Your Progress</h2>
+
+            <div className="stats">
+              <div className="stat">
+                <strong>{tasks.length}</strong>Total
+              </div>
+              <div className="stat">
+                <strong>{pending}</strong>Pending
+              </div>
+              <div className="stat">
+                <strong>{completed}</strong>Completed
+              </div>
+            </div>
+
+            <p>{progress}% completed</p>
+            <div className="progress">
+              <div className="progress-bar" style={{ width: progress + "%" }} />
+            </div>
+          </section>
+
+          <section className="card">
+            <h2>📝 My Tasks</h2>
+
+            <div className="filters">
+              {["All", "Pending", "Completed"].map(option => (
+                <button
+                  key={option}
+                  className={filter === option ? "active" : ""}
+                  onClick={() => setFilter(option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            {visibleTasks.length === 0 ? (
+              <p className="empty">No tasks here yet. Add your first task!</p>
+            ) : (
+              visibleTasks.map(task => (
+                <div className="task" key={task.id}>
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => toggleTask(task.id)}
+                    aria-label="Mark task completed"
+                  />
+
+                  <span className={"task-name " + (task.completed ? "completed" : "")}>
+                    {task.title}
+                  </span>
+
+                  <button className="edit" onClick={() => editTask(task)}>
+                    Edit
+                  </button>
+                  <button className="delete" onClick={() => deleteTask(task.id)}>
+                    Delete
+                  </button>
+                </div>
+              ))
+            )}
+
+            {tasks.length > 0 && (
+              <button className="clear" style={{ marginTop: 18 }}
+                onClick={() => {
+                  if (window.confirm("Delete all tasks?")) {
+                    setTasks([]);
+                    setEditingId(null);
+                    setText("");
+                  }
+                }}>
+                Clear All Tasks
+              </button>
+            )}
+          </section>
+
+          <p style={{ textAlign: "center", color: "#777" }}>
+            Made with 💜 using React
+          </p>
+        </main>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
 </body>
 </html>
+
